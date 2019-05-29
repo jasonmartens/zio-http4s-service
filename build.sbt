@@ -6,6 +6,7 @@ scalaVersion := "2.12.8"
 
 val circeVersion = "0.11.1"
 val http4sVersion = "0.20.1"
+val scalatestVersion = "3.0.5"
 val slf4jVersion = "1.7.26"
 val zioVersion = "1.0-RC4"
 
@@ -21,4 +22,7 @@ libraryDependencies ++= Seq(
   "io.circe" %% "circe-generic" % circeVersion,
   
   "org.slf4j" % "slf4j-log4j12" % slf4jVersion,
+
+  "org.scalactic" %% "scalactic" % scalatestVersion,
+  "org.scalatest" %% "scalatest" % scalatestVersion % "test",
 )

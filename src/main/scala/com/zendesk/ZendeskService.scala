@@ -1,5 +1,7 @@
 package com.zendesk
 
+import com.zendesk.ZendeskService.{DiagnosticResult, PingResponse}
+import io.circe.generic.auto._
 import io.circe.{Decoder, Encoder}
 import org.http4s.circe._
 import org.http4s.dsl.Http4sDsl
@@ -18,8 +20,15 @@ final case class ZendeskService[R <: Serializable](rootUri: String) {
 
   def service: HttpRoutes[ZendeskTask] = {
     HttpRoutes.of[ZendeskTask]{
-      case GET -> Root =>
-        Ok("Hello World")
+      case GET -> Root / "z" / "ping" =>
+        Ok(PingResponse("Ok"))
+      case GET -> Root / "z" / "diagnostics" =>
+        Ok(DiagnosticResult(true, "everything A-OK"))
     }
   }
+}
+
+object ZendeskService {
+  final case class PingResponse(status: String)
+  final case class DiagnosticResult(success: Boolean, message: String)
 }
