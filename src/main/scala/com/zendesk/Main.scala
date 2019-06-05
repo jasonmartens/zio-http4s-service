@@ -3,15 +3,13 @@ package com.zendesk
 import cats.effect.ExitCode
 import org.http4s.implicits._
 import org.http4s.server.Router
-import org.http4s.server.middleware.CORS
 import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.server.middleware.CORS
 import scalaz.zio._
-import scalaz.zio.interop.catz._
 import scalaz.zio.blocking.Blocking
 import scalaz.zio.clock.Clock
-import scalaz.zio.console.Console
-import scalaz.zio.console._
-import scalaz.zio.scheduler.Scheduler
+import scalaz.zio.console.{Console, _}
+import scalaz.zio.interop.catz._
 
 object Main extends App {
 
@@ -32,7 +30,6 @@ object Main extends App {
       }
       program <- server.provideSome[Environment] { base =>
         new Clock with Console with Blocking {
-          override val scheduler: Scheduler.Service[Any] = base.scheduler
           override val console: Console.Service[Any] = base.console
           override val clock: Clock.Service[Any] = base.clock
           override val blocking: Blocking.Service[Any] = base.blocking

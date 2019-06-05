@@ -8,7 +8,7 @@ val circeVersion = "0.11.1"
 val http4sVersion = "0.20.1"
 val scalatestVersion = "3.0.5"
 val slf4jVersion = "1.7.26"
-val zioVersion = "1.0-RC4"
+val zioVersion = "1.0-RC5"
 
 libraryDependencies ++= Seq(
   "org.http4s" %% "http4s-server" % http4sVersion,
