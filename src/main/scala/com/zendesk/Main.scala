@@ -1,6 +1,10 @@
 package com.zendesk
 
-import cats.effect.ExitCode
+import cats.effect._
+import cats.implicits._
+import com.zendesk.ZendeskConfig.Config
+import com.zendesk.endpoints.{HealthEndpoint, UserEndpoint}
+import com.zendesk.repository.DoobieUserRepository
 import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
@@ -10,16 +14,28 @@ import scalaz.zio.blocking.Blocking
 import scalaz.zio.clock.Clock
 import scalaz.zio.console.{Console, _}
 import scalaz.zio.interop.catz._
+import pureconfig.generic.auto._
 
 object Main extends App {
 
-  type AppEnvironment = Clock with Console with Blocking
+  type AppEnvironment = Clock with Console with Blocking with DoobieUserRepository
   type AppTask[A] = TaskR[AppEnvironment, A]
+
+
+  def createRoutes(basePath: String) = {
+    val userEndpoints = new UserEndpoint[AppEnvironment]("user").endpoints
+    val healthEndpoints = new HealthEndpoint[AppEnvironment]("z").endpoints
+    val endpoints = userEndpoints <+> healthEndpoints
+    Router[AppTask](basePath -> endpoints).orNotFound
+  }
 
   override def run(args: List[String]): ZIO[Environment, Nothing, Int] =
     (for {
+      cfg          <- ZIO.fromEither(pureconfig.loadConfig[Config])
+      _            <- ZendeskConfig.initDb(cfg.dbConfig)
       blockingEC <- ZIO.environment[Blocking].flatMap(_.blocking.blockingExecutor).map(_.asEC)
-      httpApp = Router[AppTask]("/" -> ZendeskService("/").service).orNotFound
+      transactorR   = ZendeskConfig.mkTransactor(cfg.dbConfig, Platform.executor.asEC, blockingEC)
+      httpApp = createRoutes("/")
       server = ZIO.runtime[AppEnvironment].flatMap{ implicit rts =>
         BlazeServerBuilder[AppTask]
           .bindHttp(8080, "0.0.0.0")
@@ -28,11 +44,14 @@ object Main extends App {
           .compile[AppTask, AppTask, ExitCode]
           .drain
       }
-      program <- server.provideSome[Environment] { base =>
-        new Clock with Console with Blocking {
-          override val console: Console.Service[Any] = base.console
-          override val clock: Clock.Service[Any] = base.clock
-          override val blocking: Blocking.Service[Any] = base.blocking
+      program <- transactorR.use { transactor =>
+        server.provideSome[Environment] { base =>
+          new Clock with Console with Blocking with DoobieUserRepository {
+            override protected def xa: doobie.Transactor[Task] = transactor
+            override val console: Console.Service[Any] = base.console
+            override val clock: Clock.Service[Any] = base.clock
+            override val blocking: Blocking.Service[Any] = base.blocking
+          }
         }
       }
     } yield program).foldM(
