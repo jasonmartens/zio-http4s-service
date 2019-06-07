@@ -17,12 +17,10 @@ trait JsonSupport[R] {
   implicit def valueAsJson[A](value: A)(implicit encoder: Encoder[A]): Json =
     Encoder[A](encoder)(value)
 
-  implicit def optionAsJson[A](op: Option[A])(
-    implicit encoder: Encoder[A]): Json =
+  implicit def optionAsJson[A](op: Option[A])(implicit encoder: Encoder[A]): Json =
     op.map(valueAsJson(_)(encoder)).getOrElse(Null)
 
-  implicit def valueListAsJson[A](value: List[A])(
-    implicit encoder: Encoder[List[A]]): Json = value match {
+  implicit def valueListAsJson[A](value: List[A])(implicit encoder: Encoder[List[A]]): Json = value match {
     case Nil  => Json.Null
     case list => encoder(list)
   }
@@ -31,11 +29,9 @@ trait JsonSupport[R] {
     implicit def toJson(implicit e: Encoder[T]): Json = obj.asJson
   }
 
-  implicit def circeJsonDecoder[A](
-    implicit decoder: Decoder[A]): EntityDecoder[CTaskR, A] =
+  implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]): EntityDecoder[CTaskR, A] =
     jsonOf[CTaskR, A]
-  implicit def circeJsonEncoder[A](
-    implicit encoder: Encoder[A]): EntityEncoder[CTaskR, A] =
+  implicit def circeJsonEncoder[A](implicit encoder: Encoder[A]): EntityEncoder[CTaskR, A] =
     jsonEncoderOf[CTaskR, A]
 
 }

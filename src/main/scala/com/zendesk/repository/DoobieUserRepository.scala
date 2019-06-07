@@ -17,7 +17,7 @@ trait DoobieUserRepository extends UserRepository {
 
   override val userRepository: UserRepository.Service[Any] =
     new UserRepository.Service[Any] {
-      override def getAll(): ZIO[Any, Nothing, List[User]] =
+      override def getAll: ZIO[Any, Nothing, List[User]] =
         SQL.getAll.to[List].transact(xa).orDie
 
       override def getById(id: UserId): ZIO[Any, Nothing, Option[User]] =

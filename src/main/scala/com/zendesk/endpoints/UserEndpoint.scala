@@ -21,22 +21,22 @@ final case class UserEndpoint[R <: UserRepository](rootUri: String) extends Json
 
   def endpoints: HttpRoutes[UserTask] = {
     HttpRoutes.of[UserTask] {
-      case GET -> Root / rootUri =>
+      case GET -> Root / `rootUri` =>
         Ok(getAll)
 
-      case GET -> Root / rootUri / UUIDVar(id) =>
+      case GET -> Root / `rootUri` / UUIDVar(id) =>
         for {
           user <- getById(id)
           response <- user.fold(NotFound())(u => Ok(u))
         } yield response
 
-      case req @ POST -> Root / rootUri =>
+      case req @ POST -> Root / `rootUri` =>
         req.decode[UserCreateRequest] { newUser =>
           val user = User(id = randomUUID(), newUser.name, newUser.email)
           Created(create(user))
         }
 
-      case DELETE -> Root / rootUri / UUIDVar(id) =>
+      case DELETE -> Root / `rootUri` / UUIDVar(id) =>
         delete(id).flatMap {
           case DeleteSuccess => Ok()
           case DeleteFailure => NotFound()

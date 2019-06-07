@@ -18,11 +18,11 @@ class HTTPSpec extends UnitSpec {
     ev: EntityDecoder[F, A]
   ): F[Unit] =
     for {
-      actual       <- actual
-      _            <- expectedBody.fold[F[Unit]](
-                        actual.body.compile.toVector.map(_.isEmpty))(
-                        expected => actual.as[A].map(x => assert(x === expected, s"Body was $x instead of $expected.") )
-                      )
-      _            <- F.delay(assert(actual.status == expectedStatus, s"Status was ${actual.status} instead of $expectedStatus."))
+      actual <- actual
+      _ <- expectedBody.fold[F[Unit]](
+        actual.body.compile.toVector.map(_.isEmpty))(
+          expected => actual.as[A].map(x => assert(x === expected, s"Body was $x instead of $expected.") )
+        )
+      _ <- F.delay(assert(actual.status == expectedStatus, s"Status was ${actual.status} instead of $expectedStatus."))
     } yield ()
 }

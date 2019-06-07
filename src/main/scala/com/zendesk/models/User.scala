@@ -4,8 +4,6 @@ import java.util.UUID
 
 import com.zendesk.models.User.UserId
 
-//final case class UserId(value: UUID) extends AnyVal
-
 object User {
   type UserId = UUID
   implicit def toUid(uuid: UUID): UserId = {

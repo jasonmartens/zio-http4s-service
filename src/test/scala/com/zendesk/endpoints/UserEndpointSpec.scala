@@ -18,34 +18,38 @@ class UserEndpointSpec extends HTTPSpec with Matchers {
 
   private val app = userEndpoint.endpoints.orNotFound
 
+
   describe("UserService") {
     it("Should allow creating new users and fetching them") {
-      val req = request(Method.POST, "/users").withEntity(UserCreateRequest("jason", "jmartens@zendesk.com"))
-      runWithEnv(
+      val req = request(Method.POST, rootUri).withEntity(UserCreateRequest("jason", "jmartens@zendesk.com"))
+      val result = runWithEnv(
         for {
           createResponse <- app.run(req)
+          _ = createResponse.status shouldBe Status.Created
           createUser <- createResponse.as[User]
-          getResponse <- app.run(request(Method.GET, uri = s"/users/${createUser.id.toString}"))
+          _ = {
+            createUser.email shouldBe "jmartens@zendesk.com"
+            createUser.id.toString should fullyMatch regex """\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b"""
+            createUser.email shouldBe "jmartens@zendesk.com"
+          }
+
+          getResponse <- app.run(request(Method.GET, uri = s"$rootUri/${createUser.id.toString}"))
+          _ = createResponse.status shouldBe Status.Created
           getUser <- getResponse.as[User]
-
-        } yield {
-          createResponse.status shouldBe Status.Created
-          createUser.email shouldBe "jmartens@zendesk.com"
-          createUser.id.toString should fullyMatch regex """\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b"""
-          createUser.email shouldBe "jmartens@zendesk.com"
-
-          getResponse.status shouldBe Status.Ok
-          getUser.id shouldBe createUser.id
-          getUser.name shouldBe createUser.name
-          getUser.email shouldBe createUser.email
-        }
+          _ = {
+            getUser.id shouldBe createUser.id
+            getUser.name shouldBe createUser.name
+            getUser.email shouldBe createUser.email
+          }
+        } yield true
       )
+      result shouldBe true
     }
   }
 }
 
 object UserEndpointSpec extends DefaultRuntime {
-  val userEndpoint: UserEndpoint[UserRepository] = UserEndpoint[UserRepository]("")
+  val userEndpoint: UserEndpoint[UserRepository] = UserEndpoint[UserRepository]("users")
 
   val mkEnv: UIO[UserRepository] =
     for {

@@ -14,14 +14,14 @@ trait UserRepository extends Serializable {
 
 object UserRepository extends Serializable {
   trait Service[R] extends Serializable {
-    def getAll(): ZIO[R, Nothing, List[User]]
+    def getAll: ZIO[R, Nothing, List[User]]
     def getById(id: UserId): ZIO[R, Nothing, Option[User]]
     def delete(id: UserId): ZIO[R, Nothing, DeleteResult]
     def create(user: User): ZIO[R, Nothing, User]
   }
 
   final case class InMemoryUserRepository(ref: Ref[Map[UserId, User]]) extends Service[Any] {
-    override def getAll(): ZIO[Any, Nothing, List[User]] = {
+    override def getAll: ZIO[Any, Nothing, List[User]] = {
       ref.get.map(_.values.toList)
     }
 

@@ -25,7 +25,7 @@ object UserServiceImpl extends Service[UserServiceEnvironment] {
 
   override def getAll: ZIO[UserServiceEnvironment, Throwable, List[User]] = {
     ZIO.accessM[UserRepository] { env =>
-      env.userRepository.getAll()
+      env.userRepository.getAll
     }
   }
 

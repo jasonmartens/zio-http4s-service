@@ -12,7 +12,7 @@ class HealthEndpointSpec extends HTTPSpec {
   import HealthEndpointSpec._
   import HealthEndpointSpec.zendeskService._
 
-  private val app = zendeskService.endpoints().orNotFound
+  private val app = zendeskService.endpoints.orNotFound
 
   describe("ZendeskService") {
     it("should respond to /z/ping") {

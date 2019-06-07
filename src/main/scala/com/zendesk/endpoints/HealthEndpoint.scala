@@ -13,12 +13,12 @@ final case class HealthEndpoint[R <: Serializable](rootUri: String) extends Json
   val dsl: Http4sDsl[HealthTask] = Http4sDsl[HealthTask]
   import dsl._
 
-  def endpoints(): HttpRoutes[HealthTask] = {
+  def endpoints: HttpRoutes[HealthTask] = {
     HttpRoutes.of[HealthTask]{
       case GET -> Root / "z" / "ping" =>
         Ok(PingResponse("Ok"))
       case GET -> Root / "z" / "diagnostics" =>
-        Ok(DiagnosticResult(true, "everything A-OK"))
+        Ok(DiagnosticResult(success = true, "everything A-OK"))
     }
   }
 }

@@ -8,7 +8,8 @@ import scalaz.zio.interop.catz._
 
 import scala.concurrent.ExecutionContext
 
-object ZendeskConfig {
+object ServiceConfig {
+
   final case class Config(
     appConfig: AppConfig,
     dbConfig: DBConfig
@@ -46,7 +47,8 @@ object ZendeskConfig {
       cfg.user,
       cfg.password,
       connectEC,
-      transactEC)
+      transactEC
+    )
 
     val res = xa
       .allocated
@@ -56,5 +58,4 @@ object ZendeskConfig {
 
     Managed(res)
   }
-
 }
