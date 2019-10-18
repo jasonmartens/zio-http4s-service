@@ -2,7 +2,7 @@ package com.zendesk.repository
 
 import com.zendesk.models.User
 import com.zendesk.models.User.UserId
-import scalaz.zio.{Ref, ZIO}
+import zio.{Ref, ZIO}
 
 sealed trait DeleteResult
 case object DeleteSuccess extends DeleteResult

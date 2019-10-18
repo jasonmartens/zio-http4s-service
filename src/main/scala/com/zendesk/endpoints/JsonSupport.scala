@@ -1,16 +1,16 @@
 package com.zendesk.endpoints
 
-import io.circe.Json.Null
 import io.circe._
+import io.circe.Json.Null
 import io.circe.syntax._
-import org.http4s.circe.{jsonEncoderOf, jsonOf}
 import org.http4s.{EntityDecoder, EntityEncoder}
-import scalaz.zio.TaskR
-import scalaz.zio.interop.catz._
+import org.http4s.circe.{jsonEncoderOf, jsonOf}
+import zio.RIO
+import zio.interop.catz._
 
 trait JsonSupport[R] {
 
-  type CTaskR[A] = TaskR[R, A]
+  type CRIO[A] = RIO[R, A]
 
   implicit val printer: Printer = Printer.noSpaces.copy(dropNullValues = true)
 
@@ -29,9 +29,9 @@ trait JsonSupport[R] {
     implicit def toJson(implicit e: Encoder[T]): Json = obj.asJson
   }
 
-  implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]): EntityDecoder[CTaskR, A] =
-    jsonOf[CTaskR, A]
-  implicit def circeJsonEncoder[A](implicit encoder: Encoder[A]): EntityEncoder[CTaskR, A] =
-    jsonEncoderOf[CTaskR, A]
+  implicit def circeJsonDecoder[A](implicit decoder: Decoder[A]): EntityDecoder[CRIO, A] =
+    jsonOf[CRIO, A]
+  implicit def circeJsonEncoder[A](implicit encoder: Encoder[A]): EntityEncoder[CRIO, A] =
+    jsonEncoderOf[CRIO, A]
 
 }

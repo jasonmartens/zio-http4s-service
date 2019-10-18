@@ -7,14 +7,14 @@ import com.zendesk.repository.{DeleteFailure, DeleteSuccess, UserRepository}
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
-import scalaz.zio.TaskR
-import scalaz.zio.interop.catz._
+import zio.RIO
+import zio.interop.catz._
 
 
 final case class UserEndpoint[R <: UserRepository](rootUri: String) extends JsonSupport[R] {
   import com.zendesk.services.UserServiceImpl._
 
-  type UserTask[A] = TaskR[R, A]
+  type UserTask[A] = RIO[R, A]
 
   val dsl: Http4sDsl[UserTask] = Http4sDsl[UserTask]
   import dsl._

@@ -5,8 +5,8 @@ import com.zendesk.models.{DiagnosticResult, PingResponse}
 import io.circe.generic.auto._
 import org.http4s.implicits._
 import org.http4s.{Status, _}
-import scalaz.zio._
-import scalaz.zio.interop.catz._
+import zio._
+import zio.interop.catz._
 
 class HealthEndpointSpec extends HTTPSpec {
   import HealthEndpointSpec._

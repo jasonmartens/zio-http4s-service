@@ -9,8 +9,8 @@ import io.circe.generic.auto._
 import org.http4s._
 import org.http4s.implicits._
 import org.scalatest.Matchers
-import scalaz.zio.interop.catz._
-import scalaz.zio.{DefaultRuntime, Ref, UIO, ZIO}
+import zio.interop.catz._
+import zio.{DefaultRuntime, Ref, UIO, ZIO}
 
 class UserEndpointSpec extends HTTPSpec with Matchers {
   import UserEndpointSpec._

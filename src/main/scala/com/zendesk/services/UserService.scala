@@ -4,7 +4,7 @@ import com.zendesk.models.User
 import com.zendesk.services.UserService.{Service, UserServiceEnvironment}
 import com.zendesk.models.User._
 import com.zendesk.repository.{DeleteResult, UserRepository}
-import scalaz.zio.ZIO
+import zio.ZIO
 
 /**
   * This is where the ZIO environment magic happens. At runtime either the test or

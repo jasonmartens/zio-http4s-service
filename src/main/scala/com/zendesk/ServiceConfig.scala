@@ -1,10 +1,11 @@
 package com.zendesk
 
+import cats.effect.Blocker
 import doobie.hikari._
 import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
-import scalaz.zio._
-import scalaz.zio.interop.catz._
+import zio._
+import zio.interop.catz._
 
 import scala.concurrent.ExecutionContext
 
@@ -39,7 +40,7 @@ object ServiceConfig {
   def mkTransactor(
     cfg: DBConfig,
     connectEC: ExecutionContext,
-    transactEC: ExecutionContext
+    blocker: Blocker
   ): Managed[Throwable, Transactor[Task]] = {
     val xa = HikariTransactor.newHikariTransactor[Task](
       cfg.driver,
@@ -47,15 +48,10 @@ object ServiceConfig {
       cfg.user,
       cfg.password,
       connectEC,
-      transactEC
+      blocker
     )
-
-    val res = xa
-      .allocated
-      .map { case (transactor, cleanupM) =>
-        Reservation(ZIO.succeed(transactor), cleanupM.orDie)
-      }.uninterruptible
-
-    Managed(res)
+    ZIO.runtime[Any].toManaged_.flatMap { implicit rt =>
+      xa.toManaged
+    }
   }
 }

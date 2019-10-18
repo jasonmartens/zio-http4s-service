@@ -8,8 +8,8 @@ import com.zendesk.repository.DoobieUserRepository.SQL
 import doobie._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
-import scalaz.zio.interop.catz._
-import scalaz.zio.{Task, ZIO}
+import zio.interop.catz._
+import zio.{Task, ZIO}
 
 trait DoobieUserRepository extends UserRepository {
 

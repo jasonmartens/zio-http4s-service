@@ -4,11 +4,11 @@ import com.zendesk.models.{DiagnosticResult, PingResponse}
 import io.circe.generic.auto._
 import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
-import scalaz.zio.TaskR
-import scalaz.zio.interop.catz._
+import zio.RIO
+import zio.interop.catz._
 
 final case class HealthEndpoint[R <: Serializable](rootUri: String) extends JsonSupport[R] {
-  type HealthTask[A] = TaskR[R, A]
+  type HealthTask[A] = RIO[R, A]
 
   val dsl: Http4sDsl[HealthTask] = Http4sDsl[HealthTask]
   import dsl._

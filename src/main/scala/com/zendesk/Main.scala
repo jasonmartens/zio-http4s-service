@@ -11,17 +11,20 @@ import org.http4s.implicits._
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.server.middleware.CORS
-import scalaz.zio._
-import scalaz.zio.blocking.Blocking
-import scalaz.zio.clock.Clock
-import scalaz.zio.console.{Console, _}
-import scalaz.zio.interop.catz._
+import pureconfig.ConfigSource
 import pureconfig.generic.auto._
+import zio.{ZEnv, _}
+import zio.blocking.Blocking
+import zio.clock.Clock
+import zio.console.{Console, _}
+import zio.interop.catz._
+import zio.random.Random
+import zio.system.System
 
 object Main extends App {
 
-  type AppEnvironment = Clock with Console with Blocking with DoobieUserRepository
-  type AppTask[A] = TaskR[AppEnvironment, A]
+  type AppEnvironment = Clock with Console with System with Random with Blocking with DoobieUserRepository
+  type AppTask[A] = RIO[AppEnvironment, A]
 
 
   def createRoutes(basePath: String): Kleisli[AppTask, Request[AppTask], Response[AppTask]] = {
@@ -31,12 +34,12 @@ object Main extends App {
     Router[AppTask](basePath -> endpoints).orNotFound
   }
 
-  override def run(args: List[String]): ZIO[Environment, Nothing, Int] = {
+  override def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] = {
     val p = for {
-      cfg <- ZIO.fromEither(pureconfig.loadConfig[Config])
+      cfg <- ZIO.fromEither(ConfigSource.default.load[Config])
       _ <- ServiceConfig.initDb(cfg.dbConfig)
       blockingEC <- ZIO.environment[Blocking].flatMap(_.blocking.blockingExecutor).map(_.asEC)
-      transactorR = ServiceConfig.mkTransactor(cfg.dbConfig, Platform.executor.asEC, blockingEC)
+      transactorR = ServiceConfig.mkTransactor(cfg.dbConfig, Platform.executor.asEC, Blocker.liftExecutionContext(blockingEC))
       httpApp = createRoutes("/")
       server = ZIO.runtime[AppEnvironment].flatMap { implicit rts =>
         BlazeServerBuilder[AppTask]
@@ -47,13 +50,15 @@ object Main extends App {
           .drain
       }
       program <- transactorR.use { transactor =>
-        server.provideSome[Environment] { base =>
-          new Clock with Console with Blocking with DoobieUserRepository {
-            override protected def xa: doobie.Transactor[Task] = transactor
-
-            override val console: Console.Service[Any] = base.console
+        server.provideSome[ZEnv] { base =>
+          new Clock with Console with System with Random with Blocking with DoobieUserRepository {
             override val clock: Clock.Service[Any] = base.clock
+            override val console: Console.Service[Any] = base.console
+            override val system: System.Service[Any] = base.system
+            override val random: Random.Service[Any] = base.random
             override val blocking: Blocking.Service[Any] = base.blocking
+
+            override protected def xa: doobie.Transactor[Task] = transactor
           }
         }
       }
